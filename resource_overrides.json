@@ -1,0 +1,69 @@
+{
+  "measurement": {
+    "url": "https://openstax.org/books/physics/pages/1-3-the-language-of-physics-physical-quantities-and-units",
+    "note": "Review SI quantities, units and conversions."
+  },
+  "motion": {
+    "url": "https://openstax.org/books/physics/pages/2-2-speed-and-velocity",
+    "note": "Review distance, time and average speed."
+  },
+  "forces": {
+    "title": "Moments & simple machines",
+    "url": "https://openstax.org/books/physics/pages/9-3-simple-machines",
+    "note": "Review force, lever arms and turning effects."
+  },
+  "energy": {
+    "url": "https://openstax.org/books/physics/pages/9-1-work-power-and-the-work-energy-theorem",
+    "note": "Review work, kinetic energy and power."
+  },
+  "waves": {
+    "url": "https://openstax.org/books/physics/pages/13-1-types-of-waves",
+    "note": "Review wavelength, amplitude and types of waves."
+  },
+  "thermal": {
+    "url": "https://openstax.org/books/physics/pages/11-2-heat-specific-heat-and-heat-transfer",
+    "note": "Review conduction, convection and radiation."
+  },
+  "static": {
+    "url": "https://phet.colorado.edu/en/simulations/balloons-and-static-electricity",
+    "kind": "Simulation",
+    "provider": "PhET \u00b7 University of Colorado",
+    "note": "See electrons transfer and charges attract or repel."
+  },
+  "magnet": {
+    "url": "https://phet.colorado.edu/en/simulations/magnets-and-electromagnets",
+    "kind": "Simulation",
+    "provider": "PhET \u00b7 University of Colorado",
+    "note": "Explore magnetic poles and current-created magnetic fields."
+  },
+  "logic": {
+    "url": "https://www.allaboutcircuits.com/textbook/digital/chpt-3/multiple-input-gates/",
+    "kind": "Book",
+    "provider": "All About Circuits",
+    "note": "Read the AND, OR, NAND and NOR truth tables. Later circuitry goes beyond EGCSE."
+  },
+  "led": {
+    "url": "https://web.physics.ucsb.edu/~lecturedemonstrations/Composer/Pages/64.56.html",
+    "kind": "Article",
+    "provider": "University of California, Santa Barbara",
+    "note": "Read how a forward-biased junction emits light; the apparatus discussion is optional."
+  },
+  "organic": {
+    "url": "https://openstax.org/books/chemistry-2e/pages/20-1-hydrocarbons",
+    "kind": "Book",
+    "provider": "OpenStax",
+    "note": "Review alkanes and alkenes. Skip the advanced bonding and aromatic sections for EGCSE."
+  },
+  "acids": {
+    "title": "pH and acidity",
+    "url": "https://phet.colorado.edu/en/simulations/ph-scale-basics",
+    "kind": "Simulation",
+    "provider": "PhET \u00b7 University of Colorado",
+    "note": "Explore acidic, neutral and alkaline solutions.",
+    "terms": [
+      "pH",
+      "acidity",
+      "alkaline"
+    ]
+  }
+}
