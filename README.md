@@ -70,34 +70,34 @@ Saving PDF opens the browser's print dialog; choose **Save as PDF**. LaTeX is fo
 
 ## Host free on GitHub Pages
 
-This is a static app. A public repository can use GitHub Pages on GitHub Free.
+This is a static app. This public repository can use GitHub Pages on GitHub Free.
 
-**Simple branch deployment**
+**Publish this repository**
 
-1. Use your study-app repository, or create a public repository such as `egcse-study`. Keep your portfolio repository separate.
-2. Upload the **extracted contents** of this ZIP. The repository's top level must contain **index.html**, **assets/** and **EGCSE-Offline.html**. Do not upload only the ZIP or leave the app inside an extra folder.
-3. In **Settings → Pages**, select **Deploy from a branch**, then **main** and **/(root)**. Save.
-4. Wait for deployment, then use the URL shown there.
+1. Open [Settings → Pages](https://github.com/mpumelelo810/EGCSE_STUDY-ROOM_TEACHER_-_STUDENTS/settings/pages).
+2. Under **Build and deployment → Source**, select **Deploy from a branch**.
+3. Select **main** and **/(root)**, then click **Save**.
+4. Wait for the **pages build and deployment** run to succeed, then use **Visit site** in Pages settings.
 
-For username `mpumelelo810` and repository `egcse-study`, the project URL would be:
+The website address for this repository is:
 
-`https://mpumelelo810.github.io/egcse-study/`
+[https://mpumelelo810.github.io/EGCSE_STUDY-ROOM_TEACHER_-_STUDENTS/](https://mpumelelo810.github.io/EGCSE_STUDY-ROOM_TEACHER_-_STUDENTS/)
 
-If retaining the repository name `mat442.github.io`, the project URL would be:
+The account root `https://mpumelelo810.github.io/` belongs to the separate portfolio repository.
 
-`https://mpumelelo810.github.io/mat442.github.io/`
+**Keep the folders when uploading updates**
 
-The account root `https://mpumelelo810.github.io/` is a different site. GitHub does not extract uploaded ZIP files. Filename case matters: the entry point is exactly `index.html`.
+Keep `index.html` and `EGCSE-Offline.html` at the repository root. Keep the scripts and stylesheet inside `assets/`, including `assets/vendor/`. Keep tests inside `tests/`. Upload extracted files and folders, preserving their structure; GitHub does not extract uploaded ZIP files.
 
 **GitHub Actions alternative**
 
-The included `.github/workflows/static.yml` supports a manual deployment. Select **GitHub Actions** as the Pages source, then open **Actions → Deploy EGCSE to Pages → Run workflow**. It checks generators and deploys only public files. It does not automatically deploy on every push. Replace an older workflow that still expects MAT442 filenames if choosing this method.
+The included `.github/workflows/static.yml` supports a manual deployment. Select **GitHub Actions** as the Pages source, then open **Actions → Deploy EGCSE to Pages → Run workflow**. It checks generators and deploys only public files. It does not automatically deploy on every push. Use this alternative only if you prefer it to the branch deployment above.
 
 For a class copy with embedded PDFs, publish that exported HTML as `index.html` instead. Its included papers then become publicly downloadable; local-only uploads do not.
 
-GitHub guidance: [Create a Pages site](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
+GitHub guidance: [Configure a Pages publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 
-This package was tested locally, including under a project subpath. It has **not** been uploaded to your GitHub repository or deployed to your live site.
+The app has been tested locally under a project subpath. Its files are prepared for GitHub Pages; the repository owner must enable publishing in Pages settings before the website is available.
 
 ## Progress, editing and tests
 
