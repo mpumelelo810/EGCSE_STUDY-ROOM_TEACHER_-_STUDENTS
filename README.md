@@ -3,6 +3,7 @@
 A static study app for **Mathematics (6880)** and **Physical Science (6888)**, adapted from the MAT442 study room for Mpumelelo Dlamini.
 
 ## Open it now
+download the code
 
 1. Extract this ZIP.
 2. Open **EGCSE-Offline.html** in a modern browser.
