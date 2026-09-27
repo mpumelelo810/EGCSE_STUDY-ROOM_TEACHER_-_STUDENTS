@@ -20,7 +20,7 @@ const server=http.createServer((req,res)=>{
   if(route.request().url().startsWith(base)||/^(blob|file|data):/.test(route.request().url()))return route.continue();
   remote.push(route.request().url());return route.abort();
  });
- const go=async route=>{await page.goto(base+'#'+route);await page.locator('#main h1').waitFor();};
+ const go=async route=>{await page.goto(base+'EGCSE-Offline.html#'+route);await page.locator('#main h1').waitFor();};
  try{
   await go('overview');assert.equal(await page.locator('.subject-card').count(),2);
   await page.screenshot({path:path.join(out,'overview-desktop.png'),fullPage:true});
@@ -64,16 +64,12 @@ const server=http.createServer((req,res)=>{
   await page.pdf({path:path.join(out,'practice-question.pdf'),format:'A4',printBackground:true});
   await page.evaluate(()=>document.body.classList.remove('print-question-only'));
   console.log('PASS numeric checking, unlocking, regeneration, answer refresh, persistent notes and tooltips.');
-  await go('chapter/P12');await page.locator('.teacher-reference summary').click();
-  await page.locator('#reference-label').fill('6888/02 · October/November 2021');
-  await page.locator('#reference-question').fill('Teacher example · verify Q');
-  await page.locator('#reference-url').fill('https://example.org/paper.pdf#page=3');
-  await page.locator('#reference-form button[type=submit]').click();assert.match(await page.locator('#exam-links').textContent(),/Teacher-added/);
-  let event=page.waitForEvent('download');await page.locator('#export-references').click();let dl=await event;
-  const referenceText=fs.readFileSync(await dl.path(),'utf8');assert.ok(!referenceText.includes('PRIVATE_NOTE'));
+  await go('chapter/P12');
+  assert.equal(await page.locator('#reference-form').count(),0,'Students have no teacher reference editor');
+  let event,dl;
   await go('progress');event=page.waitForEvent('download');await page.locator('#export-progress').click();dl=await event;
   const backup=fs.readFileSync(await dl.path(),'utf8');assert.ok(backup.includes('PRIVATE_NOTE_EGCSE_123'));
-  await go('chapter/C08');await page.locator('#ask-ai').click();await page.waitForURL('**/#ai');
+  await go('chapter/C08');await page.locator('#ask-ai').click();await page.waitForURL('**/EGCSE-Offline.html#ai');
   assert.match(await page.locator('#ai-question').inputValue(),/CuSO/);
   assert.match(await page.locator('#ai-prompt').inputValue(),/Physical Science \(6888\)/);
   assert.match(await page.locator('#ai-prompt').inputValue(),/2024–2026/);
@@ -91,7 +87,7 @@ PRIVATE_AI_EGCSE_456`);
   await page.pdf({path:path.join(out,'ai-solution.pdf'),format:'A4',printBackground:true});
   await page.evaluate(()=>{window.print=()=>{window.printCalled=true;};});await page.locator('#save-solution-pdf').click();
   assert.equal(await page.evaluate(()=>window.printCalled),true);
-  console.log('PASS teacher references, progress export, AI handoff, safe equations and PDF control.');
+  console.log('PASS hidden teacher controls, progress export, AI handoff, safe equations and PDF control.');
   await go('archive');await page.waitForFunction(()=>document.querySelector('#paper-count').textContent.includes('0 papers'));
   assert.equal(await page.locator('.paper-directory>div').count(),9);
   assert.match(await page.locator('.archive-banner a').getAttribute('href'),/khanyisa/);
@@ -126,7 +122,7 @@ PRIVATE_AI_EGCSE_456`);
    if(width===390){await go('overview');await page.screenshot({path:path.join(out,'overview-mobile.png'),fullPage:true});await go('chapter/P09');await page.screenshot({path:path.join(out,'chapter-mobile.png'),fullPage:true});}
   }
   const blocked=await browser.newContext();await blocked.addInitScript(()=>{Object.defineProperty(window,'localStorage',{get(){throw new Error('blocked');}});Object.defineProperty(window,'indexedDB',{get(){throw new Error('blocked');}});});
-  const fallback=await blocked.newPage();await fallback.goto(base+'#chapter/M04');await fallback.locator('#show-answer').click();await fallback.locator('#generate-similar').click();
+  const fallback=await blocked.newPage();await fallback.goto(base+'EGCSE-Offline.html#chapter/M04');await fallback.locator('#show-answer').click();await fallback.locator('#generate-similar').click();
   assert.equal(await fallback.locator('#storage-warning').isVisible(),true);await blocked.close();
   assert.deepEqual(errors,[]);assert.deepEqual(remote,[]);
   console.log('PASS 320/390/1440px layouts, resource filters, blocked storage, project-path hosting and zero external requests.');

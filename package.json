@@ -1,0 +1,16 @@
+{
+  "name": "egcse-study-room",
+  "version": "2026.9.25",
+  "private": true,
+  "description": "EGCSE student, teacher and moderator study workspaces",
+  "scripts": {
+    "test": "node --test tests/generators.test.cjs tests/access-control.test.cjs",
+    "test:browser": "node tests/browser.cjs && node tests/roles-browser.cjs",
+    "build:offline": "python3 build_offline.py"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@supabase/supabase-js": "2.117.1",
+    "playwright": "1.62.1"
+  }
+}

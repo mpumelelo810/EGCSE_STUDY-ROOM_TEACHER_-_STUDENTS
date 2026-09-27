@@ -1,6 +1,30 @@
 # EGCSE Study Room
 
-A static study app for **Mathematics (6880)** and **Physical Science (6888)**, adapted from the MAT442 study room for Mpumelelo Dlamini.
+A study app with a static GitHub Pages frontend and a Supabase account backend for **Mathematics (6880)** and **Physical Science (6888)**, adapted from the MAT442 study room for Mpumelelo Dlamini.
+
+## Project documentation
+
+The pre-development proposal describes the proposed MVP, learning journeys, implementation schedule and acceptance criteria.
+
+- [Project plan (PDF)](docs/EGCSE_Study_Room_Project_Plan.pdf)
+- [Editable project plan (Word)](docs/EGCSE_Study_Room_Project_Plan.docx)
+- [Three-role planning addendum](docs/ROLE_ACCESS_PLAN.md)
+- [Backend activation and owner setup](docs/BACKEND_SETUP.md)
+- [Role implementation verification](docs/ROLE_VERIFICATION.md)
+
+## Accounts and access
+
+The opening screen offers **Student**, **Teacher** and **Study room moderator**. Permissions come from the backend account record. Choosing a role does not grant it.
+
+| Role | Available workspace | Access limits |
+| --- | --- | --- |
+| Student | Lessons, practice, own notes/progress, approved classes and their materials | Cannot publish class materials, see other learners’ private work or manage accounts |
+| Teacher | Teaching classes, membership approvals, shared resources/tasks and own class activity counts | Moderator approval required; no access to other classes or learners’ private notes |
+| Moderator | Teacher approvals, suspend/restore accounts, hide/restore shared materials, action history | Assigned by the project owner; cannot read private notes or grant moderator access |
+
+**Activation is still required.** `assets/backend-config.js` deliberately contains no project URL or key. Apply the SQL migration to your Supabase project, configure email authentication and then add its public configuration using the [setup guide](docs/BACKEND_SETUP.md). Until then, the online login forms are disabled and the opening page links to working offline student practice.
+
+The offline HTML contains public learning material and student tools only. It never unlocks teacher or moderator features. Account data and class memberships are not embedded in offline exports.
 
 ## Open it now
 download the code
@@ -41,7 +65,7 @@ The supplied [Khanyisa syllabus collection](https://www.khanyisa.online/educare/
 
 The directory links nine Mathematics and Physical Science papers from October/November 2020 and 2021 on Khanyisa. Fifty chapters have verified question references, with subject code, paper, session, question and PDF page. A reference targets a relevant skill; it does not claim the paper covers the whole chapter.
 
-No specific question was verified in the selected papers for **P07 Electrostatics, P12 Digital electronics or P15 LEDs**. These chapters still have lessons and original practice, and identify the missing exam reference. No paper numbers have been invented. Teachers can add a reference beneath any chapter and export class references as JSON; students import these under **My progress & notes**.
+No specific question was verified in the selected papers for **P07 Electrostatics, P12 Digital electronics or P15 LEDs**. These chapters still have lessons and original practice, and identify the missing exam reference. No paper numbers have been invented. Approved teachers can keep a reference beneath a chapter in their own account and export class references as JSON. Students import those under **My progress & notes**. To share directly online, teachers publish a resource to **Teaching classes**, with its paper code, year, question and page.
 
 Original papers open at the publisher. This ZIP does not redistribute exam PDFs or reproduce their full question text. Generated questions and in-app explanations are original teaching material, labelled separately from ECESWA papers. Original-paper mark schemes are not embedded; the app links Khanyisa's marking-scheme collection, whose availability varies by year.
 
@@ -49,11 +73,13 @@ Original papers open at the publisher. This ZIP does not redistribute exam PDFs 
 
 1. Open **Past exam papers** and download a suitable paper from Khanyisa, or use a PDF you already have.
 2. Add its title, subject code, year and subject. Limits: 20 MB per PDF and 60 MB per collection.
-3. The PDFs stay in this browser. They do not automatically appear on another device.
-4. Tick papers and select **Download class copy**. The exported HTML contains the complete app and those selected PDFs.
+3. In the offline edition, PDFs stay in this browser. In the online edition, personal PDF imports last for the current open page. Reloading or signing out removes them. They are not uploaded to Supabase or automatically shared.
+4. Tick papers and select **Download class copy** in the portable-copy section. The exported HTML contains the complete app and those selected PDFs.
 5. Send the HTML to students. They can open it offline, use the generators and open or download the included papers.
 
-The class copy excludes your notes, progress and private AI draft. Custom chapter references have their separate **Download references for class** export.
+For online sharing, publish the publisher’s HTTPS paper link to your class. Shared cloud PDF storage is outside this release.
+
+The class copy excludes your notes, progress, account session, class roster and private AI draft. Custom chapter references have their separate **Download references for class** export.
 
 ## AI help and PDF solutions
 
@@ -70,7 +96,7 @@ Saving PDF opens the browser's print dialog; choose **Save as PDF**. LaTeX is fo
 
 ## Host free on GitHub Pages
 
-This is a static app. This public repository can use GitHub Pages on GitHub Free.
+The frontend is static and can stay on GitHub Pages. Auth and account data run separately in Supabase. GitHub Pages cannot execute the SQL migration or run an authentication server. See [backend setup](docs/BACKEND_SETUP.md) before inviting account users.
 
 **Publish this repository**
 
@@ -97,22 +123,23 @@ For a class copy with embedded PDFs, publish that exported HTML as `index.html` 
 
 GitHub guidance: [Configure a Pages publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 
-The app has been tested locally under a project subpath. Its files are prepared for GitHub Pages; the repository owner must enable publishing in Pages settings before the website is available.
+The frontend uses relative asset paths and is tested under a project subpath. Database policies must be applied separately; uploading SQL files to GitHub does not activate the backend.
 
 ## Progress, editing and tests
 
-Progress and notes use local storage; uploaded papers use IndexedDB. Export a progress backup before changing browsers, clearing browser data or resetting. When saving is blocked, the app shows a warning and still runs for the current visit.
+Online progress and notes are saved to the authenticated account through a protected database function. A failed load never replaces existing progress with an empty record, and save failures show a backup warning. AI drafts are private browser-session data, cleared on sign-out. Offline progress/notes use local storage and PDFs use IndexedDB; these local copies are not an account security boundary. Export backups before clearing browser data. Import an old offline progress backup explicitly if you want it in your new account; it is not automatically assigned to the next person who logs in.
 
 To edit content, change `course_content.py` or `resource_overrides.json`, then run:
 
 ```bash
 python3 course_content.py
 python3 build_offline.py
-node --test tests/generators.test.cjs
+npm ci
+npm test
 ```
 
-The build recreates `assets/content.js`, `CHAPTER-SOURCES.csv`, `assets/share-template.js` and `EGCSE-Offline.html`. Rebuild after any HTML, CSS, content or JavaScript changes so offline and class copies stay current.
+The offline build compresses its public source template to reduce download size; modern browsers decode it locally with no network request. Portable class copies remain self-contained. The build recreates `assets/content.js`, `CHAPTER-SOURCES.csv`, `assets/share-template.js` and `EGCSE-Offline.html`. Rebuild after any HTML, CSS, content or JavaScript changes so offline and class copies stay current.
 
-The optional integration suite `tests/browser.cjs` uses Playwright. Set `PLAYWRIGHT_MODULE` to its installed module path and `EGCSE_BROWSER_PATH` to a Chromium executable when needed. `EGCSE_QA_DIR` sets the screenshot/PDF output directory.
+The integration suites `tests/browser.cjs` (offline learning) and `tests/roles-browser.cjs` (account UI with API fixtures) use Playwright. Run `npm run test:browser` after installing Chromium with `npx playwright install chromium`. `tests/access-control.test.cjs` runs the actual SQL policies in PGlite, including denied operations. Set `PLAYWRIGHT_MODULE` to its installed module path and `EGCSE_BROWSER_PATH` to a Chromium executable when needed. `EGCSE_QA_DIR` sets the screenshot/PDF output directory.
 
-KaTeX is included locally under its MIT license, in `assets/vendor/KATEX-LICENSE.txt`. External materials remain with their respective authors and publishers.
+Supabase JS 2.117.1 is vendored locally with its MIT license in `assets/vendor/SUPABASE-LICENSE.txt`; no SDK CDN request is required. KaTeX is included locally under its MIT license, in `assets/vendor/KATEX-LICENSE.txt`. External materials remain with their respective authors and publishers.

@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const C=window.STUDY_CONTENT,Q=window.QuestionBank,T=window.StudyTools;
+ const C=window.STUDY_CONTENT,Q=window.QuestionBank,T=window.StudyTools,A=window.StudyAuth;
  const $=id=>document.getElementById(id);
  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const key='egcse.study.v1',byId=new Map(C.lessons.map(c=>[c.id,c]));
@@ -25,14 +25,56 @@
    if(r&&typeof r.url==='string'&&safeURL(r.url))s.customRefs[id]={url:safeURL(r.url),label:String(r.label||'Teacher-added paper').slice(0,180),question:String(r.question||'').slice(0,120)};
   }return s;
  }
- let state=empty(),storageOK=true,toastTimer;
- try{const saved=localStorage.getItem(key);if(saved)state=sanitise(JSON.parse(saved));}catch{storageOK=false;}
+ let state=empty(),storageOK=true,toastTimer,accountId=null,dataReady=false,loadGeneration=0;
+ let pendingPayload=null,syncTimer=null,syncing=null;
  function save(){
-  try{localStorage.setItem(key,JSON.stringify(state));storageOK=true;}catch{storageOK=false;}
-  $('storage-warning').hidden=storageOK;
-  $('storage-warning').textContent=storageOK?'':'Automatic saving is unavailable. Download a progress backup before closing this page.';
-  $('save-status').textContent=storageOK?'Progress saved on this device':'Use a progress backup';
+  if(!dataReady||!A.active())return;
+  if(A.offline){
+   try{localStorage.setItem(key,JSON.stringify(state));storageOK=true;}catch{storageOK=false;}
+   $('storage-warning').hidden=storageOK;
+   $('storage-warning').textContent=storageOK?'':'Automatic saving is unavailable. Download a progress backup before closing this page.';
+   $('save-status').textContent=storageOK?'Progress on this device':'Use a progress backup';
+  }else{
+   pendingPayload=JSON.parse(JSON.stringify(state));clearTimeout(syncTimer);
+   $('save-status').textContent='Saving to your account…';
+   syncTimer=setTimeout(()=>flush().catch(()=>{}),600);
+  }
  }
+ async function flush(){
+  clearTimeout(syncTimer);
+  if(syncing)return syncing;
+  if(A.offline||!pendingPayload)return;
+  const owner=accountId;
+  syncing=(async()=>{
+   while(pendingPayload&&owner===accountId&&A.active()){
+    const payload=pendingPayload;pendingPayload=null;
+    try{
+     const r=await A.client.rpc('save_study_progress',{payload});if(r.error)throw r.error;
+     if(owner===accountId){$('save-status').textContent='Saved to your account';$('storage-warning').hidden=true;}
+    }catch(e){
+     if(owner===accountId){pendingPayload=pendingPayload||payload;$('save-status').textContent='Work not yet synced';$('storage-warning').hidden=false;$('storage-warning').textContent='Could not save your latest work online. Keep this page open, reconnect, or download a progress backup.';}
+     throw e;
+    }
+   }
+  })().finally(()=>{syncing=null;});return syncing;
+ }
+ async function accountChanged(){
+  A.render();
+  if(!A.active()){loadGeneration++;clearTimeout(syncTimer);pendingPayload=null;state=empty();dataReady=false;accountId=null;T.setScope(null);$('main').innerHTML='';return;}
+  const id=A.profile.id;
+  if(id===accountId&&dataReady){route();return;}
+  const token=++loadGeneration;clearTimeout(syncTimer);pendingPayload=null;accountId=id;dataReady=false;state=empty();T.setScope(id);
+  $('main').innerHTML='<div class="page-head"><h1>Loading your study progress…</h1><p role="status">Opening your own workspace.</p></div>';
+  try{
+   if(A.offline){try{const saved=localStorage.getItem(key);if(saved)state=sanitise(JSON.parse(saved));}catch{storageOK=false;}}
+   else{const r=await A.client.from('study_progress').select('data').eq('user_id',id).maybeSingle();if(r.error)throw r.error;if(token!==loadGeneration)return;if(r.data?.data)state=sanitise(r.data.data);}
+   if(token!==loadGeneration)return;dataReady=true;$('save-status').textContent=A.offline?'Progress on this device':'Account progress loaded';
+   if(A.offline)save();route();
+  }catch(e){if(token!==loadGeneration)return;$('main').innerHTML='<div class="page-head"><h1>Your progress could not be loaded</h1><p>Check your connection, then try again. Your saved account work has not been replaced.</p><button class="button" id="retry-progress">Try again</button></div>';$('retry-progress').onclick=accountChanged;}
+ }
+ window.StudyProgress={flush};
+ window.addEventListener('online',()=>flush().catch(()=>{}));
+ window.addEventListener('beforeunload',e=>{if(pendingPayload||syncing){e.preventDefault();e.returnValue='';}});
  function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,3500);}
  function download(name,text,type='application/json'){
   const u=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');
@@ -97,13 +139,14 @@
   return items.join('')||'<p class="empty-reference">No specific exam question has been verified for this chapter in the selected 2020–2021 papers. The practice below is original. A teacher can add a paper reference here.</p>';
  }
  function refEditor(c){
+  if(!A.canTeach())return '';
   const v=state.customRefs[c.id]||{};
-  return `<details class="no-print teacher-reference"><summary>Teacher: add or update a paper reference</summary><form id="reference-form"><div class="form-grid"><label class="field wide"><span class="field-label">Subject code, paper, year and session</span><input id="reference-label" maxlength="180" placeholder="EGCSE 6888/02 · October/November 2025" value="${esc(v.label||'')}" required></label><label class="field"><span class="field-label">Question / page</span><input id="reference-question" maxlength="120" placeholder="Q4(b), PDF page 6" value="${esc(v.question||'')}" required></label><label class="field wide"><span class="field-label">Public paper link (include #page=6 if useful)</span><input id="reference-url" type="url" value="${esc(v.url||'')}" required></label></div><div class="actions"><button class="button small" type="submit">Save reference on this device</button><button class="button secondary small" type="button" id="export-references">Download references for class</button></div><p class="small-text">Exported references can be imported by students in My progress & notes. Your personal notes are excluded from this export.</p><p id="reference-status" role="status"></p></form></details>`;
+  return `<details class="no-print teacher-reference"><summary>Teacher: add or update a paper reference</summary><form id="reference-form"><div class="form-grid"><label class="field wide"><span class="field-label">Subject code, paper, year and session</span><input id="reference-label" maxlength="180" placeholder="EGCSE 6888/02 · October/November 2025" value="${esc(v.label||'')}" required></label><label class="field"><span class="field-label">Question / page</span><input id="reference-question" maxlength="120" placeholder="Q4(b), PDF page 6" value="${esc(v.question||'')}" required></label><label class="field wide"><span class="field-label">Public paper link (include #page=6 if useful)</span><input id="reference-url" type="url" value="${esc(v.url||'')}" required></label></div><div class="actions"><button class="button small" type="submit">Save to my teacher notes</button><button class="button secondary small" type="button" id="export-references">Download references for class</button></div><p class="small-text">Exported references can be imported by students in My progress & notes. Your personal notes are excluded from this export.</p><p id="reference-status" role="status"></p></form></details>`;
  }
  function wireRefs(c){
-  if(!$('reference-form'))return;
+  if(!A.canTeach()||!$('reference-form'))return;
   $('reference-form').onsubmit=e=>{
-   e.preventDefault();const url=safeURL($('reference-url').value);
+   e.preventDefault();if(!A.canTeach())return;const url=safeURL($('reference-url').value);
    if(!url){$('reference-status').textContent='Use an http or https paper URL.';return;}
    state.customRefs[c.id]={label:$('reference-label').value.trim(),question:$('reference-question').value.trim(),url};
    save();$('exam-links').innerHTML=refsHTML(c);$('reference-status').textContent='Reference saved. Download references for class to share it with students.';
@@ -188,7 +231,7 @@
  }
  function progress(){
   const done=C.lessons.filter(c=>state.completed[c.id]),tried=C.lessons.filter(c=>state.sessions[c.id]?.attempts>0);
-  $('main').innerHTML=`<div class="page-head"><div class="eyebrow">SEE WHAT YOU HAVE WORKED ON</div><h1>My progress & notes</h1><p>${done.length} of 53 chapters marked reviewed · ${tried.length} chapters with an answer attempted. Your work is stored in this browser.</p></div>
+  $('main').innerHTML=`<div class="page-head"><div class="eyebrow">SEE WHAT YOU HAVE WORKED ON</div><h1>My progress & notes</h1><p>${done.length} of 53 chapters marked reviewed · ${tried.length} chapters with an answer attempted. ${A.offline?'Your work is stored in this browser.':'Your progress and notes are private to your account.'}</p></div>
   <section class="panel no-print"><h2>Keep or move your progress</h2><div class="actions"><button class="button" id="export-progress">Download progress backup</button><label class="button secondary">Import backup / class references<input id="import-progress" type="file" accept=".json,application/json" hidden></label><button class="button text" id="reset-progress">Reset progress</button></div><p class="small-text">A progress backup includes chapter notes, current questions and teacher references. Papers and AI drafts have their own export controls. Importing a progress backup replaces this study progress; class references only merge paper links.</p><p role="status" id="import-status"></p></section>
   <section class="panel"><h2>Your chapter log</h2><div class="progress-log">${C.lessons.map(c=>`<article><div><span class="tag">${c.id}</span><h3><a href="#chapter/${c.id}">${esc(c.title)}</a></h3><p class="small-text">${state.completed[c.id]?'✓ Reviewed':'Not marked reviewed'} · ${state.sessions[c.id]?.attempts||0} answer checks</p></div>${state.notes[c.id]?`<p class="saved-note">${esc(state.notes[c.id])}</p>`:''}</article>`).join('')}</div></section>`;
   $('export-progress').onclick=()=>download('EGCSE-progress.json',JSON.stringify(state,null,2));
@@ -212,18 +255,22 @@
  function notFound(){$('main').innerHTML='<div class="page-head"><h1>Choose a study chapter</h1><p>This page is not in the course. <a href="#overview">Return to your study room</a>.</p></div>';}
  let activeRoute='';
  function route(){
-  T.leaveRoute();document.body.classList.remove('print-question-only');document.body.dataset.route='';
+  T.leaveRoute();window.StudyRooms.leave();if(!A.active()||!dataReady)return;document.body.classList.remove('print-question-only');document.body.dataset.route='';
   let path;try{path=decodeURIComponent(location.hash.slice(1)||'overview');}catch{path='missing';}
-  const [section,id]=path.split('/');
+  let [section,id]=path.split('/');
+  if(section==='overview'&&A.profile.role==='teacher')section='teacher';
+  if(section==='overview'&&A.profile.role==='moderator')section='moderator';
+  if(!A.allowed(section)){$('main').innerHTML='<div class="page-head"><h1>Access unavailable</h1><p>This area is not available for your account.</p><a href="#overview">Return to your workspace</a></div>';return;}
   activeRoute=section;
   const navSection=byId.has(id)&&['chapter','practice'].includes(section)?(section==='practice'?'practice':byId.get(id).subject):section;
   document.querySelectorAll('[data-route]').forEach(a=>{const active=a.dataset.route===navSection;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   $('navigation').classList.remove('open');$('menu-toggle').setAttribute('aria-expanded','false');
-  const titles={overview:'My study room',maths:'Mathematics',science:'Physical Science',chapter:'Chapter',practice:'Practice',archive:'Past exam papers',ai:'AI study desk',resources:'Resources & syllabus',progress:'Progress & notes'};
+  const titles={teacher:'Teaching classes',rooms:'My classes',moderator:'Moderation',overview:'My study room',maths:'Mathematics',science:'Physical Science',chapter:'Chapter',practice:'Practice',archive:'Past exam papers',ai:'AI study desk',resources:'Resources & syllabus',progress:'Progress & notes'};
   $('page-label').textContent=byId.get(id)?.title||titles[section]||'Study room';
   document.title=($('page-label').textContent)+' · EGCSE Study Room';document.body.dataset.route=section;
   if(section==='main'){$('main').focus();return;}
-  if(section==='overview')overview();
+  if(['teacher','moderator','rooms'].includes(section))window.StudyRooms.render(section,id);
+  else if(section==='overview')overview();
   else if(section==='maths'||section==='science')course(section);
   else if(section==='chapter'&&id)chapter(id);
   else if(section==='practice'&&id)chapter(id,true);
@@ -246,5 +293,5 @@
  if(location.protocol==='file:'){
   const a=document.querySelector('.sidebar-bottom a[download]');a.href=location.href.split('#')[0];a.download='EGCSE-Offline.html';
  }
- save();route();
+ A.start().then(()=>{A.onChange(accountChanged);accountChanged();});
 })();

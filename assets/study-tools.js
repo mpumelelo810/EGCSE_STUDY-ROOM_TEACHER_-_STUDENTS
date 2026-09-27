@@ -6,7 +6,10 @@
  const resources=new Map(C.resources.map(r=>[r.id,r]));
  const MAX_FILE=20*1024*1024,MAX_TOTAL=60*1024*1024;
  const topicOptions=(all='All topics')=>`<option value="all">${all}</option>`+C.lessons.map(l=>`<option value="${l.id}">${l.id} · ${esc(l.title)}</option>`).join('');
- let tipId=0,db=null,memoryOnly=false,records=[],ready,generation=0;
+ let tipId=0,db=null,memoryOnly=false,records=[],ready,generation=0,scope=null;
+ const localMode=()=>window.StudyAuth.offline;
+ const draftStorage=()=>localMode()?localStorage:sessionStorage;
+ const draftKey=()=>localMode()?'egcse.ai-draft.v1':'egcse.draft.'+scope;
  const urls=new Map(),sizeLabel=n=>n<1048576?`${Math.ceil(n/1024)} KB`:`${(n/1048576).toFixed(1)} MB`;
  const safeName=n=>String(n||'paper').replace(/[^\p{L}\p{N}._ -]/gu,'_').slice(0,140);
  function download(name,content,type='text/plain'){
@@ -62,37 +65,39 @@
  }
  function initPapers(){if(ready)return ready;ready=(async()=>{
   let total=0;for(const raw of (Array.isArray(window.SHARED_PAPERS)?window.SHARED_PAPERS:[]).slice(0,200)){try{const p=decodeShared(raw);if(p&&total+p.size<=MAX_TOTAL){total+=p.size;records.push(p);}}catch{}}
+  if(!localMode()){memoryOnly=true;return;}
   try{db=await openDB();for(const p of await transaction('getAll'))if(p.blob instanceof Blob&&!records.some(x=>x.id===p.id))records.push(p);db.onversionchange=()=>{db.close();memoryOnly=true;};}catch{memoryOnly=true;}
  })();return ready;}
  function dataURL(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Could not read this PDF.'));r.readAsDataURL(blob);});}
  const scriptJSON=v=>JSON.stringify(v).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
  async function exportClassCopy(selected){
-  if(!window.PUBLIC_APP_TEMPLATE)throw new Error('Sharing template missing. Open the complete app folder or EGCSE-Offline.html.');
+  const template=window.PUBLIC_APP_TEMPLATE||await window.getPublicAppTemplate?.();
+  if(!template)throw new Error('Sharing template missing. Open the complete app folder or EGCSE-Offline.html.');
   if(!selected.length)throw new Error('Select at least one paper.');
   if(selected.reduce((n,p)=>n+p.size,0)>MAX_TOTAL)throw new Error('Choose no more than 60 MB of papers.');
   const papers=[];for(const p of selected)papers.push({id:p.id,title:p.title,filename:p.filename,faculty:p.faculty,course:p.course,year:p.year,data:await dataURL(p.blob)});
-  const boot='<script>window.SHARED_PAPERS='+scriptJSON(papers)+';window.PUBLIC_APP_TEMPLATE='+scriptJSON(window.PUBLIC_APP_TEMPLATE)+';<\/script>';
-  download('EGCSE-Class-Study.html',window.PUBLIC_APP_TEMPLATE.replace('<!--SHARED_PAPERS-->',()=>boot),'text/html;charset=utf-8');
+  const boot='<script>window.SHARED_PAPERS='+scriptJSON(papers)+';window.PUBLIC_APP_TEMPLATE='+scriptJSON(template)+';<\/script>';
+  download('EGCSE-Class-Study.html',template.replace('<!--SHARED_PAPERS-->',()=>boot),'text/html;charset=utf-8');
  }
  async function renderArchive(){
   const token=++generation;
   $('main').innerHTML=`<div class="page-head"><div class="eyebrow">PAST PAPERS → PRACTICE → UNDERSTANDING</div><h1>Past exam papers</h1><p>Find a paper, attempt a question, then work through what you missed.</p></div>
   <section class="archive-banner"><div><span class="eyebrow">MTN EDUCARE · KHANYISA</span><h2>EGCSE past papers</h2><p>Choose Form 5 / EGCSE, a year, then Mathematics (6880) or Physical Science (6888). Original questions open on the publisher’s website. Download a PDF to add it to your class collection below.</p></div><a class="button gold" href="https://www.khanyisa.online/educare/exampapers/form5/" target="_blank" rel="noopener noreferrer">Open EGCSE papers ↗</a></section><section id="curated-papers" class="panel"></section>
   <div class="study-shortcuts"><a href="#practice">Choose a chapter and practise →</a><a href="#ai">Open the AI study desk →</a></div>
-  <section class="panel no-print"><h2>Add papers to this study room</h2><p class="small-text">PDFs you add are saved in this browser. To give students the same papers, select them below and download a class copy.</p><form id="add-papers"><div class="form-grid">
+  <section class="panel no-print"><h2>Add papers to this study room</h2><p class="small-text">${localMode()?'PDFs you add are saved in this browser.':'PDFs you add stay on this open page. Reloading or signing out removes them; download a copy to keep them.'} Teachers can share public paper links through Teaching classes.</p><form id="add-papers"><div class="form-grid">
   <label class="field wide"><span class="field-label">PDF files · up to 20 MB each, 60 MB per collection</span><input id="paper-files" type="file" accept=".pdf,application/pdf" multiple required></label>
   <label class="field wide"><span class="field-label">Title (optional; multiple files use their filenames)</span><input id="paper-title" maxlength="180" placeholder="EGCSE Mathematics · Paper 1"></label>
   <label class="field"><span class="field-label">Subject code</span><input id="paper-course" maxlength="60" value="6880"></label><label class="field"><span class="field-label">Year (optional)</span><input id="paper-year" inputmode="numeric" maxlength="4" pattern="[12][0-9]{3}" placeholder="2023"></label>
   <label class="field wide"><span class="field-label">Subject</span><input id="paper-faculty" maxlength="120" value="Mathematics"></label></div><div class="actions form-actions"><button class="button" type="submit" id="add-paper-button">Add PDF papers</button></div></form><p id="paper-status" class="small-text" role="status" hidden></p></section>
   <section class="panel"><div class="section-heading"><div><h2>Your paper collection</h2><p id="paper-count" role="status">Loading papers…</p></div></div><label class="field no-print"><span class="field-label">Find a paper</span><input type="search" id="paper-search" placeholder="Search title, subject code or year"></label><p id="paper-storage" class="small-text muted"></p><div id="paper-list"></div>
-  <div class="class-copy no-print"><h3>Share papers with your students</h3><p class="small-text">Tick the papers to include, then download one HTML file containing the app and those PDFs. Send it to students to open in a browser, or publish that file as your website’s index.html. Your notes, quiz answers and AI draft are not copied.</p><button class="button" id="export-class" disabled>Download class copy</button><p id="class-status" class="small-text" role="status"></p></div></section>
+  <div class="class-copy no-print"><h3>Download a portable study copy</h3><p class="small-text">Tick the papers to include, then download one HTML file containing the app and those PDFs. Send it to students to open in a browser, or publish that file as your website’s index.html. Your notes, quiz answers and AI draft are not copied.</p><button class="button" id="export-class" disabled>Download class copy</button><p id="class-status" class="small-text" role="status"></p></div></section>
   <dialog id="remove-paper-dialog" aria-labelledby="remove-paper-title"><h2 id="remove-paper-title">Remove this paper?</h2><p>This removes your local copy from this browser. It does not change an already downloaded class copy.</p><div class="actions"><button class="button secondary" id="keep-paper">Keep paper</button><button class="button danger" id="remove-paper-confirm">Remove paper</button></div></dialog>`;
   const selected=new Set();let removeId;
   const paint=()=>{
    if(token!==generation||!$('paper-list'))return;
    const papers=allPapers(),query=$('paper-search').value.trim().toLowerCase(),matches=papers.filter(p=>[p.title,p.faculty,p.course,p.year].join(' ').toLowerCase().includes(query));
    $('paper-count').textContent=`${papers.length} ${papers.length===1?'paper':'papers'} · ${sizeLabel(papers.reduce((s,p)=>s+p.size,0))}`;
-   $('paper-storage').textContent=memoryOnly?'Saving is unavailable here. Added papers last for this visit only; download a class copy before closing.':'Saved in this browser. Papers marked “Included” also travel with this class copy.';
+   $('paper-storage').textContent=!localMode()?'Personal PDFs on this page only. Download a portable copy before reloading or signing out.':memoryOnly?'Saving is unavailable here. Added papers last for this visit only; download a class copy before closing.':'Saved in this browser. Papers marked “Included” also travel with this class copy.';
    $('export-class').disabled=!selected.size;
    $('paper-list').innerHTML=matches.map(p=>`<article class="uploaded-paper"><div class="paper-selection no-print"><input type="checkbox" data-include="${esc(p.id)}" id="include-${esc(p.id)}"${selected.has(p.id)?' checked':''}><label for="include-${esc(p.id)}">Include in class copy</label></div><h3>${esc(p.title)}</h3><p class="small-text muted">${[p.course,p.year,p.faculty,sizeLabel(p.size),p.shared?'Included in this copy':'Added on this device'].filter(Boolean).map(esc).join(' · ')}</p><div class="actions"><a class="button secondary small" href="${blobURL(p)}" target="_blank" rel="noopener noreferrer">Open PDF ↗</a><a class="button secondary small" href="${blobURL(p)}" download="${esc(p.filename)}">Download PDF</a><button class="button small" data-study="${esc(p.id)}">Study a question</button>${p.shared?'':`<button class="button text small" data-remove="${esc(p.id)}">Remove</button>`}</div></article>`).join('')||`<div class="empty-collection"><strong>${papers.length?'No matching papers':'Your collection starts here'}</strong><p>${papers.length?'Try a course code or another year.':'Open the Khanyisa archive and download a paper, or add a PDF you already have.'}</p></div>`;
    $('paper-list').querySelectorAll('[data-include]').forEach(n=>n.onchange=()=>{n.checked?selected.add(n.dataset.include):selected.delete(n.dataset.include);$('export-class').disabled=!selected.size;});
@@ -135,11 +140,14 @@
  }
  const emptyDraft=()=>({paper:'',paperId:'',question:'',page:'',topic:'M01',mode:'hints',attempt:'',solution:'',source:'',title:'My worked solution'});
  let draft=emptyDraft(),draftSaved=true,draftTimer;
- try{const raw=JSON.parse(localStorage.getItem('egcse.ai-draft.v1')||'null');if(raw&&typeof raw==='object')for(const key of Object.keys(draft))if(typeof raw[key]==='string')draft[key]=raw[key].slice(0,key==='solution'?60000:12000);}
- catch{draftSaved=false;}
+ function setScope(id){
+  generation++;clearTimeout(draftTimer);if(db)db.close();db=null;ready=null;records=[];memoryOnly=false;
+  urls.forEach(url=>URL.revokeObjectURL(url));urls.clear();scope=id;draft=emptyDraft();draftSaved=true;
+  if(id)try{const raw=JSON.parse(draftStorage().getItem(draftKey())||'null');if(raw&&typeof raw==='object')for(const key of Object.keys(draft))if(typeof raw[key]==='string')draft[key]=raw[key].slice(0,key==='solution'?60000:12000);}catch{draftSaved=false;}
+ }
  function saveDraft(){
-  try{localStorage.setItem('egcse.ai-draft.v1',JSON.stringify(draft));draftSaved=true;}catch{draftSaved=false;}
-  if($('draft-status'))$('draft-status').textContent=draftSaved?'Draft saved in this browser.':'Draft is not saved automatically. Download your solution or a text backup before leaving.';
+  try{draftStorage().setItem(draftKey(),JSON.stringify(draft));draftSaved=true;}catch{draftSaved=false;}
+  if($('draft-status'))$('draft-status').textContent=draftSaved?(localMode()?'Draft saved in this browser.':'Private draft saved for this sign-in session.'):'Draft is not saved automatically. Download your solution or a text backup before leaving.';
  }
  function buildPrompt(){
   if(!draft.question.trim())return '';
@@ -245,5 +253,5 @@ The study app has not attached the PDF to this chat. If the question needs a fig
  }
  function prepareQuestion(context){for(const key of ['paper','page','question','topic','attempt','title'])if(typeof context[key]==='string')draft[key]=context[key];draft.paperId='';draft.solution='';draft.source='';saveDraft();location.hash='ai';}
  function leaveRoute(){generation++;clearTimeout(draftTimer);}
- window.StudyTools={prepareQuestion,refreshLink,lessonExamples,renderExamples,renderResourceShelf,renderArchive,renderAI,leaveRoute,formatAnswer};
+ window.StudyTools={setScope,prepareQuestion,refreshLink,lessonExamples,renderExamples,renderResourceShelf,renderArchive,renderAI,leaveRoute,formatAnswer};
 })();

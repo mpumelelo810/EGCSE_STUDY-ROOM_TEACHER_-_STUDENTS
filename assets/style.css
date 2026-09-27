@@ -43,3 +43,33 @@
 @media print{.subject-grid{grid-template-columns:1fr 1fr}.exam-reference{break-inside:avoid}.question-panel{box-shadow:none;border:0}.panel-label,.eyebrow{color:#20614f!important}.lesson-body h2{break-after:avoid;font-size:14pt;margin:16px 0 8px}.lesson-body p{font-size:10.5pt;line-height:1.5}.lesson-body{max-width:none}.watch-for,.answer-final,.lesson-diagram{break-inside:avoid}.practice-choices{display:none}.question-text{font-size:11pt}.question-panel .answer-feedback{display:none}.answer-final{padding:8px;background:#f3f5ee;border:1px solid #ddd}.answer-final>span{font-size:12pt}.guided-steps{font-size:10.5pt;line-height:1.5}.guided-steps>li{padding-bottom:7px;margin-bottom:6px}.guided-steps h3{font-size:11pt}.print-question-only #main>*:not(#practice-question){display:none!important}.print-question-only #practice-question{display:block!important}.question-panel:not(:has(#worked-answer:not([hidden])))::after{content:'Working and answer: __________________________________________________________';display:block;margin:30px 0 80px;font-size:11pt}.extended-outline{display:none}#chapter-questions{break-before:page}.page-head{margin-bottom:20px}.panel{margin-bottom:12px}.answer-math-block{overflow:visible}}
 
 .print-only{display:none}@media print{.print-only{display:block}.printed-choices{padding-left:25px;font-size:11pt}.printed-choices li{margin:8px 0}}
+
+/* Account entry and role workspaces */
+[hidden]{display:none!important}
+.auth-gate{max-width:1180px;margin:auto;padding:42px 36px 22px;min-height:100vh}
+.auth-brand{display:inline-flex;align-items:center;gap:13px;color:var(--ink,#123e38);text-decoration:none;font-size:21px;font-weight:750;letter-spacing:1px}
+.auth-brand small{display:block;font-size:10px;letter-spacing:2.2px;margin-top:3px}
+.auth-intro{text-align:center;padding:62px 0 35px}
+.auth-intro h1{font:clamp(38px,5vw,64px)/1.12 Georgia,serif;margin:16px 0 20px;color:#123e38;letter-spacing:-1.5px}
+.auth-intro em{font-weight:400;color:#5c7258}
+.auth-intro p,.auth-form-wrap>p{color:#62726b;line-height:1.7}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.role-card{text-align:left;border:1px solid #d9dfd3;border-radius:18px;background:#fffdf7;padding:28px 25px;color:#173e36;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;transition:transform .15s,border-color .15s}
+.role-card:hover,.role-card:focus-visible{transform:translateY(-4px);border-color:#a08847;outline:2px solid #d6c794;outline-offset:3px}
+.role-number{border:1px solid #d8ded1;border-radius:50%;height:37px;width:37px;display:grid;place-items:center;font-size:12px;margin-bottom:26px}
+.role-card h2{font:28px/1.2 Georgia,serif;margin:0 0 18px}
+.role-card strong{font-size:14px}.role-card p{font-size:14px;line-height:1.7;color:#62726b;margin-bottom:30px}
+.role-action{margin-top:auto;font-weight:700;font-size:13px}.role-card:nth-child(2){background:#f0f4e9}.role-card:nth-child(3){background:#f5f0e4}
+.account-setup{padding:18px 24px;border:1px solid #dcd7c8;border-radius:12px;margin:26px auto;background:#f5f0e4;max-width:750px}.account-setup p{margin:6px 0 12px;font-size:14px}
+.auth-foot{text-align:center;color:#62726b;font-size:12px;margin:35px 0 10px;letter-spacing:1px}
+.auth-form-wrap,.auth-message{max-width:490px;margin:55px auto}.auth-message{max-width:650px}.auth-form-wrap h1,.auth-message h1{font:36px/1.2 Georgia,serif;color:#123e38}
+.auth-form-wrap fieldset{border:0;padding:0;margin:26px 0 0}.auth-form-wrap .field{margin-bottom:20px}.auth-form-wrap fieldset>.button{width:100%}.auth-switches{display:flex;flex-wrap:wrap;gap:6px}.auth-loading{text-align:center;padding:20vh 0}
+#auth-status,#room-status{color:#8f341d;line-height:1.6;overflow-wrap:anywhere}.inline-form{display:flex;align-items:end;gap:15px;flex-wrap:wrap}
+.room-material{padding:24px 0;border-top:1px solid #dedfd4}.material-body{white-space:pre-wrap;overflow-wrap:anywhere}.room-material h3{margin:10px 0}.room-material .actions a{overflow-wrap:anywhere}
+.member-list article{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 0;border-bottom:1px solid #dedfd4}.member-list p{margin:5px 0;font-size:13px}.member-list small{font-size:10px;overflow-wrap:anywhere;color:#617266}
+.invite-code{background:#f0f4e9;padding:15px;border-radius:8px}.invite-code strong{letter-spacing:2px;margin-left:12px}.publish-box{margin:24px 0}.publish-box summary{cursor:pointer;font-weight:700;padding:12px 0}.publish-box form{margin-top:16px}.status-pill{background:#f5f0e4;padding:12px;border-radius:8px;font-size:13px}
+#account-label{overflow-wrap:anywhere;font-weight:600}.signed-out .skip-link{display:none}
+@media(max-width:750px){.auth-gate{padding:26px 20px}.auth-intro{padding:38px 0 22px}.role-grid{grid-template-columns:1fr}.role-card{padding:22px}.role-number{margin-bottom:14px}.role-card p{margin-bottom:18px}.member-list article{display:block}.member-list .actions{margin-top:12px}.auth-form-wrap{margin-top:35px}.auth-intro h1{letter-spacing:-.5px}}
+@media print{#auth-gate{display:none}.role-card,.publish-box,.invite-code,#account-label,#sign-out{display:none}}
+
+.account-controls{display:flex;align-items:center;justify-content:space-between;gap:9px;font-size:11px;line-height:1.5;margin:0 4px 18px}.account-controls .button{flex-shrink:0;font-size:10px;padding:6px 8px}.account-controls #account-label{min-width:0}
