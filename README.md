@@ -22,7 +22,7 @@ The opening screen offers **Student**, **Teacher** and **Study room moderator**.
 | Teacher | Teaching classes, membership approvals, shared resources/tasks and own class activity counts | Moderator approval required; no access to other classes or learners’ private notes |
 | Moderator | Teacher approvals, suspend/restore accounts, hide/restore shared materials, action history | Assigned by the project owner; cannot read private notes or grant moderator access |
 
-**Activation is still required.** `assets/backend-config.js` deliberately contains no project URL or key. Apply the SQL migration to your Supabase project, configure email authentication and then add its public configuration using the [setup guide](docs/BACKEND_SETUP.md). Until then, the online login forms are disabled and the opening page links to working offline student practice.
+**Database installed; email setup still required.** On 28 September 2026, both migrations were applied to project `orkaqpdtcvrnoogttvwj` and the real database passed the role-permission tests. `assets/backend-config.js` contains the project's public URL and publishable key, with `enabled: false`. Complete the email redirects/delivery settings and owner account setup using the [setup guide](docs/BACKEND_SETUP.md), then enable online accounts. Until then, the opening page links to working offline student practice. No real account or first moderator has been created yet.
 
 The offline HTML contains public learning material and student tools only. It never unlocks teacher or moderator features. Account data and class memberships are not embedded in offline exports.
 

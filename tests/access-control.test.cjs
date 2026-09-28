@@ -16,7 +16,9 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    create table auth.users(id uuid primary key,raw_user_meta_data jsonb not null default '{}');
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
-  await db.exec(fs.readFileSync(path.join(__dirname,'../supabase/migrations/202609240001_roles.sql'),'utf8'));
+  const migrations=path.join(__dirname,'../supabase/migrations');
+  for(const file of fs.readdirSync(migrations).filter(file=>file.endsWith('.sql')).sort())
+   await db.exec(fs.readFileSync(path.join(migrations,file),'utf8'));
   for(const [name,id] of Object.entries(ids))await query('insert into auth.users values($1,$2)',[id,JSON.stringify({display_name:name,requested_role:['teacher','unrelated','pending'].includes(name)?'teacher':'moderator',role:'moderator',status:'active'})]);
   await query("update public.profiles set role='moderator' where id=$1",[ids.mod]);
   await t.test('signup metadata cannot create moderator or approved teacher',async()=>{

@@ -16,7 +16,7 @@ const rooms=[room],members=[],materials=[],progress={};let recoveryRequests=0;
 const user=p=>({id:p.id,email:Object.keys(accounts).find(k=>accounts[k]===p)+'@example.test',aud:'authenticated',role:'authenticated',app_metadata:{provider:'email'},user_metadata:{},created_at:new Date().toISOString()});
 const session=p=>({access_token:[{alg:'HS256',typ:'JWT'},{sub:p.id,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600},'test'].map(x=>Buffer.from(typeof x==='string'?x:JSON.stringify(x)).toString('base64url')).join('.'),refresh_token:'fixture-refresh',token_type:'bearer',expires_in:3600,user:user(p)});
 async function fixtures(context,base){
- await context.route('**/assets/backend-config.js',r=>r.fulfill({contentType:'text/javascript',body:"window.STUDY_BACKEND={url:'https://fixture.supabase.co',publishableKey:'sb_publishable_test_only'};"}));
+ await context.route('**/assets/backend-config.js',r=>r.fulfill({contentType:'text/javascript',body:"window.STUDY_BACKEND={enabled:true,url:'https://fixture.supabase.co',publishableKey:'sb_publishable_test_only'};"}));
  await context.route('https://fixture.supabase.co/**',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();let body={};try{body=req.postDataJSON()||{};}catch{}
   let sub;try{sub=JSON.parse(Buffer.from((req.headers().authorization||'').split('.')[1],'base64url').toString()).sub;}catch{}
@@ -61,7 +61,9 @@ async function fixtures(context,base){
  const errors=[];
  try{
   const fresh=await browser.newContext({viewport:{width:1440,height:1000}}),p=await fresh.newPage();p.on('pageerror',e=>errors.push(e.message));
+  await fresh.route('**/assets/backend-config.js',r=>r.fulfill({contentType:'text/javascript',body:"window.STUDY_BACKEND={enabled:false,url:'https://fixture.supabase.co',publishableKey:'sb_publishable_test_only'};"}));
   await p.goto(base);await p.locator('.role-card').first().waitFor();assert.equal(await p.locator('.role-card').count(),3);
+  assert.equal(await p.evaluate(()=>StudyAuth.configured),false);assert.equal(await p.evaluate(()=>StudyAuth.client),null);
   await p.screenshot({path:path.join(out,'role-choice-desktop.png'),fullPage:true});
   await p.setViewportSize({width:390,height:900});await p.screenshot({path:path.join(out,'role-choice-mobile.png'),fullPage:true});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   await p.locator('[data-role=teacher]').click();assert.equal(await p.locator('#auth-email').isDisabled(),true);

@@ -6,7 +6,7 @@
  const config=window.STUDY_BACKEND||{};
  const offline=window.STUDY_OFFLINE===true;
  const publicKey=k=>{if(typeof k!=='string')return false;if(k.startsWith('sb_publishable_'))return true;try{return JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role==='anon';}catch{return false;}};
- const configured=!offline&&/^https:\/\/[^/]+$/.test(config.url||'')&&publicKey(config.publishableKey);
+ const configured=!offline&&config.enabled===true&&/^https:\/\/[^/]+$/.test(config.url||'')&&publicKey(config.publishableKey);
  let client=null,profile=null,selected='',mode='signin',error='',recovery=false,ready=false,revision=0;
  const listeners=new Set();
  const labels={student:'Student',teacher:'Teacher',moderator:'Study room moderator'};
@@ -42,7 +42,7 @@
   const signup=mode==='signup',reset=mode==='reset';
   const heading=recovery?'Set a new password':reset?'Reset your password':signup?`Create ${selected==='teacher'?'a teacher request':'your student account'}`:`${labels[selected]} login`;
   gate.innerHTML=`${brand}<section class="auth-form-wrap"><button class="button text" id="back-roles">← Choose a different role</button><div class="eyebrow">${recovery?'ACCOUNT RECOVERY':esc(labels[selected])}</div><h1>${heading}</h1><p>${signup&&selected==='teacher'?'Teacher access starts after moderator approval.':selected==='moderator'?'Use the moderator account assigned by the project owner.':'Your account decides which tools you can use.'}</p>
-  ${!configured?'<div class="account-setup"><strong>Online login is not available yet.</strong><p>The project owner needs to connect the account service.</p><a href="EGCSE-Offline.html">Continue with offline student practice →</a></div>':''}
+  ${!configured?'<div class="account-setup"><strong>Online login is not available yet.</strong><p>The project owner is finishing account setup.</p><a href="EGCSE-Offline.html">Continue with offline student practice →</a></div>':''}
   <form id="auth-form"><fieldset ${!configured?'disabled':''}>${signup?'<label class="field"><span class="field-label">Your name</span><input id="auth-name" autocomplete="name" maxlength="100" required></label>':''}${!recovery?'<label class="field"><span class="field-label">Email address</span><input id="auth-email" type="email" autocomplete="username" required></label>':''}${!reset?`<label class="field"><span class="field-label">${recovery?'New p':'P'}assword</span><input id="auth-password" type="password" autocomplete="${signup||recovery?'new-password':'current-password'}" ${signup||recovery?'minlength="12"':''} maxlength="128" required></label>`:''}<button class="button" type="submit">${recovery?'Save password':reset?'Send reset link':signup?'Create account':'Sign in'}</button></fieldset></form><p id="auth-status" role="status" aria-live="polite">${esc(error)}</p>
   ${!recovery?`<div class="auth-switches">${selected!=='moderator'?`<button class="button text" id="switch-auth">${signup?'Already registered? Sign in':'New here? Create an account'}</button>`:''}<button class="button text" id="reset-password">${reset?'Back to sign in':'Forgot password?'}</button></div>`:''}</section>`;
   $('back-roles').onclick=()=>{selected='';mode='signin';error='';if(recovery){signOut();return;}render();};

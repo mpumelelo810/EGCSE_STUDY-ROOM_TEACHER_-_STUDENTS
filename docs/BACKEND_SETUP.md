@@ -1,6 +1,8 @@
 # Activate student, teacher and moderator accounts
 
-The website is ready for a Supabase backend. **No live Supabase project is connected yet.** The login forms stay disabled until the owner completes this guide. Public offline student practice remains available.
+**Current status, 28 September 2026:** the database is installed in project `orkaqpdtcvrnoogttvwj`. Its six tables, signup trigger, protected functions and role policies passed the live SQL checks. The public URL and publishable key are saved in `assets/backend-config.js`. Online login remains disabled through `enabled: false` while email redirects and delivery settings are completed. Public offline student practice remains available.
+
+For this existing project, **start at section 2**. Do not rerun the initial migration. No real app accounts or moderator have been created. Dashboard sign-in is needed to finish the settings; the database connector used for installation does not expose Auth configuration controls.
 
 GitHub Pages serves the frontend. Supabase runs authentication and PostgreSQL access rules. Uploading the SQL file to GitHub alone does not create the database.
 
@@ -8,7 +10,7 @@ GitHub Pages serves the frontend. Supabase runs authentication and PostgreSQL ac
 
 1. Open [Supabase](https://supabase.com/dashboard) and create a new project in your own account. Keep its database password private.
 2. Review the [current plan limits](https://supabase.com/pricing). A free plan is available for a small pilot; quotas, inactive-project pauses and email-provider costs still apply. This project does not purchase or provision any service for you.
-3. In the project's SQL Editor, run the complete contents of [`202609240001_roles.sql`](../supabase/migrations/202609240001_roles.sql) **once, before creating app accounts**. It is an initial migration for a new project, not an upgrade script for an unrelated database.
+3. For a **new, empty project only**, run the migrations in order: [`20260928092216_egcse_roles_and_study_rooms.sql`](../supabase/migrations/20260928092216_egcse_roles_and_study_rooms.sql), then [`20260928092921_optimize_role_policies.sql`](../supabase/migrations/20260928092921_optimize_role_policies.sql). Apply each once, before creating app accounts. The first is an initial migration, not an upgrade script for an unrelated database. These filenames match the existing project's recorded migration versions; the original `202609240001_roles.sql` was renamed without changing its SQL.
 4. Confirm that the six public tables exist: `profiles`, `study_progress`, `study_rooms`, `room_members`, `room_materials` and `moderation_log`. Row-level security must stay enabled on each.
 
 The migration uses protected database functions for approvals and progress saves. Public clients have no direct write permission on roles, account status, membership approvals or moderation history.
@@ -43,10 +45,13 @@ Find the **Project URL** and **publishable API key** in the project's Connect/AP
 
 ```js
 window.STUDY_BACKEND = Object.freeze({
+  enabled: true,
   url: 'https://YOUR_PROJECT_REF.supabase.co',
   publishableKey: 'sb_publishable_YOUR_PUBLIC_KEY'
 });
 ```
+
+The existing project's URL and publishable key are already filled in. Set `enabled: true` only after the email settings in section 2 are ready. `enabled: false` keeps the SDK and account forms inactive even when valid connection values are present. This release switch is not an access-control mechanism; database grants and policies always enforce permissions.
 
 Use the URL without a trailing slash. A legacy `anon` key also works. Never use an `sb_secret_` key, `service_role` key, database password or SMTP password. The client rejects secret/service-role keys. A publishable key is expected to be public; the database grants and policies protect account data.
 
@@ -115,6 +120,8 @@ npm run test:browser
 
 For an existing browser installation, set `EGCSE_BROWSER_PATH`. The browser tests start their own local server. The SQL tests run the actual migration and access rules in PGlite PostgreSQL; browser account tests use API fixtures.
 
-On the **real configured project**, verify email confirmation, password reset, student login, teacher approval, class admission and moderator suspension using separate test accounts. Try a student account against another student's data and against teacher/moderator operations; they must be rejected by the database, even if a button is manually unhidden. Confirm those checks before opening the pilot. Live Auth/email delivery has not been tested without your project.
+The owner can run [`tests/live-access-control.sql`](../tests/live-access-control.sql) in the SQL Editor to test the real database with randomly generated, transaction-only identities. It sends no email, modifies no real account, and rolls all fixture rows back. This passed on the configured project on 28 September 2026, including private notes, role escalation, class admission, moderation and immediate suspension. The tests simulate JWT identities in SQL; they do not test Auth token issuance or email delivery.
+
+Before inviting a class, verify real email confirmation, password reset, student login, teacher approval, class admission and moderator suspension using separate test accounts. These end-to-end Auth/email checks are still pending.
 
 See [verification notes](ROLE_VERIFICATION.md) for the local checks and [Supabase row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security) for the permission model.
