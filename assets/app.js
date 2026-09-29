@@ -59,7 +59,7 @@
   })().finally(()=>{syncing=null;});return syncing;
  }
  async function accountChanged(){
-  A.render();
+  A.render();window.StudyCatalog.refreshNav();
   if(!A.active()){loadGeneration++;clearTimeout(syncTimer);pendingPayload=null;state=empty();dataReady=false;accountId=null;T.setScope(null);$('main').innerHTML='';return;}
   const id=A.profile.id;
   if(id===accountId&&dataReady){route();return;}
