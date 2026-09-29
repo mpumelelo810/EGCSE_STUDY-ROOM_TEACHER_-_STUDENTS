@@ -83,3 +83,5 @@
 .group-posts small{color:#64756f}
 #student-groups form{margin:.8rem 0}
 #student-groups textarea{width:100%}
+
+.topic-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.6rem;margin:1rem 0 1.5rem}.topic-list span{display:block;padding:.7rem .85rem;border:1px solid var(--line,#d7dfdb);border-radius:10px;background:var(--paper,#fff);font-size:.92rem}
