@@ -33,8 +33,10 @@ Teachers request access, confirm email, and wait for the moderator. The moderato
 
 ## Syllabus catalogue pilot
 
-The Form 5 catalogue contains 17 published subjects and 143 topic headings, including the existing 53 detailed Mathematics and Physical Science chapters. The other subjects have syllabus headings and PDF links; teachers supply lesson text, worked examples and practice. Selecting a subject loads stored headings and its source PDF link. The app does not extract a newly published PDF on demand or generate exercises from it. ICT is absent from the current MTN Educare Form 5 catalogue and requires a verified syllabus source before import. The old “Both subjects” choice was removed without deleting any existing class.
+The Form 5 source catalogue contains 17 subjects and 143 topic headings, including the existing 53 detailed Mathematics and Physical Science chapters. The other subjects have syllabus headings and PDF links; teachers supply lesson text, worked examples and practice. The moderator saves a subject globally to make it visible in the student and teacher sidebar below Mathematics and Physical Science. Selecting it loads stored headings and its source PDF link. The app does not extract a newly published PDF on demand or generate exercises from it. ICT is absent from the current MTN Educare Form 5 catalogue and requires a verified syllabus source before import. The old “Both subjects” choice was removed without deleting any existing class.
 
 ## Dynamic global lessons
 
 The moderator can add a subject such as French, add its topic headings, write a global lesson for each topic, and publish it to every student and teacher. Teachers use those global topics as a foundation and create their own class-specific lessons. The moderator cannot read private class content. A syllabus PDF supplies structure, not automatically authored teaching explanations or exercises.
+
+The moderator's **Save globally** action publishes a subject to the shared navigation. Mathematics and Physical Science are initially visible; other imported syllabus subjects remain ready for moderator selection. Teachers can only edit lessons and exercises within their own classes.
