@@ -119,4 +119,6 @@ begin
 end; $$;
 revoke all on function public.create_study_group(uuid,text),public.join_study_group(text),public.group_discussion(uuid) from public,anon,authenticated;
 grant execute on function public.create_study_group(uuid,text),public.join_study_group(text),public.group_discussion(uuid) to authenticated;
+grant delete on public.room_materials to authenticated;
+create policy materials_delete on public.room_materials for delete to authenticated using (owner_id=(select auth.uid()) and private.owns_room(room_id));
 commit;
