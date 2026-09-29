@@ -43,7 +43,7 @@
    gate.innerHTML=`${brand}<p role="status">${esc(error)}</p><section class="auth-intro"><div class="eyebrow">ONE STUDY ROOM. YOUR OWN SPACE.</div><h1>How will you use<br><em>the study room?</em></h1><p>Choose your role to sign in and find the tools you need.</p></section><div class="role-grid">${[
     ['student','01','Learn at your pace','Study chapters, try questions and keep your own progress.'],
     ['teacher','02','Guide your learners','Create classes, share learning materials and follow class progress.'],
-    ['moderator','03','Look after the room','Review teacher requests, manage access and moderate shared materials.']
+    ['moderator','03','Look after the room','Review teacher requests, manage accounts and maintain the subject catalogue.']
    ].map(([role,num,title,copy])=>`<button class="role-card" data-role="${role}"><span class="role-number">${num}</span><h2>${labels[role]}</h2><strong>${title}</strong><p>${copy}</p><span class="role-action">Log in as ${role==='moderator'?'moderator':role} →</span></button>`).join('')}</div>${!configured?'<div class="account-setup" role="status"><strong>Online accounts are being set up.</strong><p>You can keep learning with the offline student edition.</p><a class="button secondary" href="EGCSE-Offline.html">Open offline student practice →</a></div>':''}<p class="auth-foot">Subjects · Classes · Study groups</p>`;
    gate.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{selected=b.dataset.role;error='';render();$('auth-email')?.focus();});return;
   }
