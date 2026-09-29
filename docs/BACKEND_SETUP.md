@@ -1,8 +1,8 @@
 # Activate student, teacher and moderator accounts
 
-**Current status, 28 September 2026:** the database is installed in project `orkaqpdtcvrnoogttvwj`. Its six tables, signup trigger, protected functions and role policies passed the live SQL checks. The public URL and publishable key are saved in `assets/backend-config.js`. Online login remains disabled through `enabled: false` while email redirects and delivery settings are completed. Public offline student practice remains available.
+**Current status, 29 September 2026:** the database is installed in project `orkaqpdtcvrnoogttvwj`. Its six tables, signup trigger, protected functions and role policies passed the live SQL checks. The Site URL and four redirects are saved. Gmail SMTP accepted an invitation request to `tdata440@gmail.com` (Auth log status 200), and the GitHub Pages account forms are live with `enabled: true`. Inbox delivery and the invitation link still need user verification. Public offline student practice remains available.
 
-For this existing project, **start at section 2**. Do not rerun the initial migration. No real app accounts or moderator have been created. Dashboard sign-in is needed to finish the settings; the database connector used for installation does not expose Auth configuration controls.
+For this existing project, **do not rerun the initial migration**. Check the invitation in the corrected owner inbox, complete the account flow, assign the first moderator, and verify real role workflows before inviting a class. No moderator has been assigned.
 
 GitHub Pages serves the frontend. Supabase runs authentication and PostgreSQL access rules. Uploading the SQL file to GitHub alone does not create the database.
 
@@ -51,7 +51,7 @@ window.STUDY_BACKEND = Object.freeze({
 });
 ```
 
-The existing project's URL and publishable key are already filled in. Set `enabled: true` only after the email settings in section 2 are ready. `enabled: false` keeps the SDK and account forms inactive even when valid connection values are present. This release switch is not an access-control mechanism; database grants and policies always enforce permissions.
+The existing project's URL and publishable key are filled in, and `enabled: true` now activates the account forms. `enabled: false` keeps the SDK and account forms inactive even when valid connection values are present. This release switch is not an access-control mechanism; database grants and policies always enforce permissions.
 
 Use the URL without a trailing slash. A legacy `anon` key also works. Never use an `sb_secret_` key, `service_role` key, database password or SMTP password. The client rejects secret/service-role keys. A publishable key is expected to be public; the database grants and policies protect account data.
 
@@ -122,6 +122,6 @@ For an existing browser installation, set `EGCSE_BROWSER_PATH`. The browser test
 
 The owner can run [`tests/live-access-control.sql`](../tests/live-access-control.sql) in the SQL Editor to test the real database with randomly generated, transaction-only identities. It sends no email, modifies no real account, and rolls all fixture rows back. This passed on the configured project on 28 September 2026, including private notes, role escalation, class admission, moderation and immediate suspension. The tests simulate JWT identities in SQL; they do not test Auth token issuance or email delivery.
 
-Before inviting a class, verify real email confirmation, password reset, student login, teacher approval, class admission and moderator suspension using separate test accounts. These end-to-end Auth/email checks are still pending.
+Before inviting a class, verify real email confirmation, password reset, student login, teacher approval, class admission and moderator suspension using separate test accounts. These end-to-end Auth/email checks are still pending beyond the accepted invitation request.
 
 See [verification notes](ROLE_VERIFICATION.md) for the local checks and [Supabase row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security) for the permission model.
