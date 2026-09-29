@@ -10,7 +10,7 @@
  let client=null,profile=null,selected='',mode='signin',error='',recovery=false,ready=false,revision=0;
  const listeners=new Set();
  const labels={student:'Student',teacher:'Teacher',moderator:'Study room moderator'};
- const currentURL=()=>location.origin+location.pathname;
+ const currentURL=()=>window.STUDY_AUTH_REDIRECT_URL||location.origin+location.pathname;
  let transient={};
  const backing=k=>k.endsWith('-code-verifier')?localStorage:sessionStorage;
  const storage={getItem:k=>{try{return backing(k).getItem(k);}catch{return transient[k]??null;}},setItem:(k,v)=>{try{backing(k).setItem(k,v);}catch{transient[k]=v;}},removeItem:k=>{try{backing(k).removeItem(k);}catch{}delete transient[k];}};
