@@ -45,7 +45,7 @@
   $('main').innerHTML='<div class="page-head"><h1>Loading your workspace…</h1><p role="status">Checking your account access.</p></div>';
   try{
    if(section==='moderator'){await moderation(token);return;}
-   const subjects=await result(A.client.from('subjects').select('name,syllabus_url').order('name'));
+   const subjects=await result(A.client.from('subjects').select('name,syllabus_url').neq('syllabus_url','').order('name'));
    const ownSubjects=role==='teacher'?await result(A.client.from('teacher_subjects').select('id,name,syllabus_url').order('name')):[];
    const rooms=await result(A.client.from('study_rooms').select('*').order('created_at',{ascending:false}));
    const members=await result(A.client.from('room_members').select('*'));
