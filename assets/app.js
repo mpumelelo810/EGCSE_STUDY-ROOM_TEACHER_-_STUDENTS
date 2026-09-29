@@ -255,21 +255,23 @@
  function notFound(){$('main').innerHTML='<div class="page-head"><h1>Choose a study chapter</h1><p>This page is not in the course. <a href="#overview">Return to your study room</a>.</p></div>';}
  let activeRoute='';
  function route(){
-  T.leaveRoute();window.StudyRooms.leave();if(!A.active()||!dataReady)return;document.body.classList.remove('print-question-only');document.body.dataset.route='';
+  T.leaveRoute();window.StudyRooms.leave();window.StudyCatalog.leave();if(!A.active()||!dataReady)return;document.body.classList.remove('print-question-only');document.body.dataset.route='';
   let path;try{path=decodeURIComponent(location.hash.slice(1)||'overview');}catch{path='missing';}
   let [section,id]=path.split('/');
   if(section==='overview'&&A.profile.role==='teacher')section='teacher';
   if(section==='overview'&&A.profile.role==='moderator')section='moderator';
   if(!A.allowed(section)){$('main').innerHTML='<div class="page-head"><h1>Access unavailable</h1><p>This area is not available for your account.</p><a href="#overview">Return to your workspace</a></div>';return;}
   activeRoute=section;
-  const navSection=byId.has(id)&&['chapter','practice'].includes(section)?(section==='practice'?'practice':byId.get(id).subject):section;
+  const navSection=section==='subject'?'subjects':byId.has(id)&&['chapter','practice'].includes(section)?(section==='practice'?'practice':byId.get(id).subject):section;
   document.querySelectorAll('[data-route]').forEach(a=>{const active=a.dataset.route===navSection;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   $('navigation').classList.remove('open');$('menu-toggle').setAttribute('aria-expanded','false');
-  const titles={teacher:'Teaching classes',rooms:'My classes',moderator:'Moderation',overview:'My study room',maths:'Mathematics',science:'Physical Science',chapter:'Chapter',practice:'Practice',archive:'Past exam papers',ai:'AI study desk',resources:'Resources & syllabus',progress:'Progress & notes'};
-  $('page-label').textContent=byId.get(id)?.title||titles[section]||'Study room';
+  const titles={teacher:'Teaching classes',rooms:'My classes',moderator:'Moderation',subjects:'Subjects',subject:'Subject',overview:'My study room',maths:'Mathematics',science:'Physical Science',chapter:'Chapter',practice:'Practice',archive:'Past exam papers',ai:'AI study desk',resources:'Resources & syllabus',progress:'Progress & notes'};
+  $('page-label').textContent=byId.get(id)?.title||(section==='subject'?id:null)||titles[section]||'Study room';
   document.title=($('page-label').textContent)+' · Study Room';document.body.dataset.route=section;
   if(section==='main'){$('main').focus();return;}
   if(['teacher','moderator','rooms'].includes(section))window.StudyRooms.render(section,id);
+  else if(section==='subjects')window.StudyCatalog.list();
+  else if(section==='subject'&&id)window.StudyCatalog.subject(id);
   else if(section==='overview')overview();
   else if(section==='maths'||section==='science')course(section);
   else if(section==='chapter'&&id)chapter(id);
