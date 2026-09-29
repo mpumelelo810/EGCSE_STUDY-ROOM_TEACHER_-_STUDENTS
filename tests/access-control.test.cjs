@@ -10,7 +10,7 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
  const as=async who=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[ids[who]||'']);await db.exec('set role '+(who==='anon'?'anon':'authenticated'));};
  const query=async(sql,args=[])=> (await db.query(sql,args)).rows;
  const rpc=(name,args)=>query(`select public.${name}(${args.map((_,i)=>'$'+(i+1)).join(',')})`,args);
- const denied=async fn=>{await assert.rejects(fn,/permission denied|row-level security|account required|access required|Only the class teacher/);};
+ const denied=async fn=>{await assert.rejects(fn,/permission denied|row-level security|account required|access required|Only the class teacher|Group membership required|Check the group code/);};
  try{
   await db.exec(`create role anon; create role authenticated; create schema auth;
    create table auth.users(id uuid primary key,raw_user_meta_data jsonb not null default '{}');
@@ -27,7 +27,7 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    await as('pending');await denied(()=>query("insert into public.study_rooms(title,subject) values('Blocked','Mathematics')"));
   });
   await t.test('anonymous requests cannot read account data or call privileged functions',async()=>{
-   await as('anon');for(const table of ['profiles','study_progress','study_rooms','room_members','room_materials','moderation_log'])await denied(()=>query('select * from public.'+table));
+   await as('anon');for(const table of ['profiles','study_progress','study_rooms','room_members','room_materials','moderation_log','subjects','class_lessons','study_groups','study_group_members','study_group_posts'])await denied(()=>query('select * from public.'+table));
    await denied(()=>rpc('moderate_account',[ids.pending,'approve_teacher']));
    await denied(()=>rpc('save_study_progress',[{version:1,completed:{},sessions:{}}]));
   });
@@ -67,13 +67,32 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    await as('unrelated');await denied(()=>rpc('class_progress',[room.id]));
    await as('mod');assert.equal((await query('select * from public.study_progress')).length,0);await denied(()=>rpc('class_progress',[room.id]));
   });
-  await t.test('students cannot publish; teachers cannot bypass content moderation',async()=>{
-   await as('student');await denied(()=>query("insert into public.room_materials(room_id,title,chapter_id,kind) values($1,'Forged','M01','resource')",[room.id]));
+  await t.test('teachers own class lessons and moderators see no learning content',async()=>{
+   await as('teacher');await query("insert into public.subjects(name) values('History')");
+   const lesson=(await query("insert into public.class_lessons(room_id,title,overview,practice_question,practice_answer) values($1,'Decimals','Place value','Round 2.45','2.5') returning *",[room.id]))[0];
+   await as('student');assert.equal((await query('select * from public.class_lessons')).length,1);
+   await denied(()=>query("insert into public.class_lessons(room_id,title) values($1,'Forgery')",[room.id]));
+   await denied(()=>query("insert into public.subjects(name) values('Forged subject')"));
+   await denied(()=>query("insert into public.room_materials(room_id,title,chapter_id,kind) values($1,'Forged','M01','resource')",[room.id]));
+   await as('unrelated');assert.equal((await query('select * from public.class_lessons')).length,0);
+   await as('mod');assert.equal((await query('select * from public.study_rooms')).length,0);
+   assert.equal((await query('select * from public.room_materials')).length,0);
+   assert.equal((await query('select * from public.class_lessons')).length,0);
+   await denied(()=>query("insert into public.class_lessons(room_id,title) values($1,'Admin lesson')",[room.id]));
    await denied(()=>rpc('moderate_material',[material.id,true]));
-   await as('mod');await rpc('moderate_material',[material.id,true]);
-   await as('student');assert.equal((await query('select * from public.room_materials')).length,0);
-   await as('teacher');await denied(()=>query('update public.room_materials set hidden=false where id=$1',[material.id]));
-   await as('mod');await rpc('moderate_material',[material.id,false]);
+   await query("insert into public.subjects(name) values('Geography')");
+   await as('teacher');assert.equal((await query('select * from public.class_lessons where id=$1',[lesson.id])).length,1);
+  });
+  await t.test('only approved classmates can form and discuss in a group',async()=>{
+   await as('student');const created=await rpc('create_study_group',[room.id,'Study team']);const code=created[0].create_study_group;
+   const group=(await query('select * from public.study_groups'))[0];
+   await query("insert into public.study_group_posts(group_id,body) values($1,'Let us practise decimals')",[group.id]);
+   assert.equal((await query('select * from public.group_discussion($1)',[group.id])).length,1);
+   await as('other');assert.equal((await query('select * from public.study_groups')).length,0);
+   await denied(()=>rpc('join_study_group',[code]));
+   await as('teacher');assert.equal((await query('select * from public.study_groups')).length,0);
+   await as('mod');assert.equal((await query('select * from public.study_group_posts')).length,0);
+   await denied(()=>rpc('group_discussion',[group.id]));
   });
   await t.test('suspension immediately blocks an existing account identity; restoration works',async()=>{
    await as('mod');await rpc('moderate_account',[ids.student,'suspend']);
