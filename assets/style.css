@@ -73,3 +73,13 @@
 @media print{#auth-gate{display:none}.role-card,.publish-box,.invite-code,#account-label,#sign-out{display:none}}
 
 .account-controls{display:flex;align-items:center;justify-content:space-between;gap:9px;font-size:11px;line-height:1.5;margin:0 4px 18px}.account-controls .button{flex-shrink:0;font-size:10px;padding:6px 8px}.account-controls #account-label{min-width:0}
+
+/* Teacher lessons and student group discussions */
+.class-lesson{margin:1rem 0}
+.lesson-body{white-space:pre-wrap;overflow-wrap:anywhere}
+.practice-corner{margin:1rem 0;padding:1rem;border:1px solid var(--line,#d6e2de);border-radius:12px;background:#f7faf8}
+.group-posts{max-height:32rem;overflow:auto;margin:1rem 0}
+.group-posts .room-material{margin:.6rem 0}
+.group-posts small{color:#64756f}
+#student-groups form{margin:.8rem 0}
+#student-groups textarea{width:100%}
