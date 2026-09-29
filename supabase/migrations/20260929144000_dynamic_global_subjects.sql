@@ -44,4 +44,5 @@ create policy global_lessons_update on public.global_lessons for update to authe
 using (private.actor_role()='moderator') with check (private.actor_role()='moderator');
 create policy global_lessons_delete on public.global_lessons for delete to authenticated
 using (private.actor_role()='moderator');
+create index if not exists study_rooms_teacher_subject_owner on public.study_rooms(teacher_subject_id,owner_id);
 commit;
