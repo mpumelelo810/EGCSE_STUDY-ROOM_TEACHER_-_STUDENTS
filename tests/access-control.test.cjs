@@ -110,9 +110,12 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    const global=(await query("insert into public.global_lessons(topic_id,title,overview,published) values($1,'Bonjour','A greeting',false) returning *",[topic.id]))[0];
    await as('teacher');
    assert.equal((await query('select * from public.global_lessons where id=$1',[global.id])).length,0);
-   await denied(()=>query("update public.global_lessons set overview='Teacher edit' where id=$1",[global.id]));
+   await denied(()=>query("insert into public.global_lessons(topic_id,title) values($1,'Teacher edit')",[topic.id]));
    await as('mod');
    await query('update public.global_lessons set published=true where id=$1',[global.id]);
+   await as('teacher');
+   assert.equal((await query('select * from public.global_lessons where id=$1',[global.id])).length,1);
+   assert.equal((await query("update public.global_lessons set overview='Teacher edit' where id=$1 returning *",[global.id])).length,0);
    await as('student');
    assert.equal((await query('select * from public.global_lessons where id=$1',[global.id])).length,1);
    await denied(()=>query("insert into public.subject_topics(subject_name,position,title) values('French pilot',2,'Forged')"));
