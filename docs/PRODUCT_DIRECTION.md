@@ -6,15 +6,19 @@ Updated 29 September 2026. This is intended to be donated to an educator and exp
 
 | Role | Can do | Cannot do |
 | --- | --- | --- |
-| Moderator | Approve or decline teacher requests, remove or restore account access, add subject names | Read lessons, class materials, student notes, group discussions, or study progress |
-| Teacher | Add subject names, create classes, approve students in their own classes, create and edit class lessons, practice prompts, worked examples, links and supplementary materials | Change the fixed structure of the original course or another teacher's class |
+| Moderator | Approve or decline teacher requests, remove or restore account access, add shared subject names | Read lessons, class materials, student notes, group discussions, or study progress |
+| Teacher | Choose moderator-approved subject names, create classes, approve students in their own classes, create and edit class lessons, practice prompts, worked examples, links and supplementary materials | Change the fixed structure of the original course or another teacher's class |
 | Student | Study the original course and approved class lessons, keep private notes and progress, download a progress backup, form or join a group with classmates in an approved class, post in that group | Change teacher lessons or read another student's private notes |
 
 ## Content model
 
-The original Mathematics and Physical Science chapters remain a read-only foundation. A teacher's subject is a catalog name, and the teacher's class is the boundary for lessons. Class lessons follow a common format: introduction, steps, worked example, practice question, answer and supplementary HTTPS link. Teachers can change the content of their own class lessons without changing the original chapters.
+The original Mathematics and Physical Science chapters remain a read-only foundation. A subject name is approved for the shared catalog by the moderator, and the teacher's class is the boundary for lessons. Class lessons follow a common format: introduction, steps, worked example, practice question, answer and supplementary HTTPS link. Teachers can change the content of their own class lessons without changing the original chapters.
 
 Student group discussions are visible only to active group members who also belong to the same active class. Private student notes remain in their own progress record and can be exported from the Progress & Notes screen.
+
+## Global changes
+
+Only the moderator can change the shared subject catalog and manage teacher access. Teachers control the content and membership of their own classes. Students control their private notes and their class study groups.
 
 ## Account lifecycle
 
