@@ -24,6 +24,7 @@
   $('account-label').textContent=offline?'Offline student':profile?`${profile.display_name} · ${labels[profile.role]}`:'';
   $('sign-out').hidden=offline||!profile;
   document.querySelectorAll('[data-roles]').forEach(n=>n.hidden=offline||!active()||!n.dataset.roles.split(' ').includes(profile?.role));
+  document.querySelectorAll('[data-study-nav]').forEach(n=>n.hidden=!active()||profile?.role==='moderator');
   let banner=$('account-notice');
   if(!banner){banner=document.createElement('div');banner.id='account-notice';banner.className='account-setup';banner.setAttribute('role','status');banner.hidden=true;document.querySelector('.workspace').insertBefore(banner,$('main'));}
   banner.hidden=!active()||!notice;
@@ -33,7 +34,7 @@
   }
   if(active())return;
   if(!ready){gate.innerHTML='<div class="auth-loading" role="status">Opening your study room…</div>';return;}
-  const brand='<a class="auth-brand" href="#"><span class="brand-mark">Σ</span><span>EGCSE <small>THE STUDY ROOM</small></span></a>';
+  const brand='<a class="auth-brand" href="#"><span class="brand-mark">Σ</span><span>STUDY ROOM <small>LEARN TOGETHER</small></span></a>';
   if(profile&&profile.status!=='active'&&!recovery){
    gate.innerHTML=`${brand}<section class="auth-message"><span class="eyebrow">ACCOUNT STATUS</span><h1>${profile.status==='pending'?'Your teacher request is waiting for approval':'Your account is suspended'}</h1><p>${profile.status==='pending'?'Your email is confirmed. A study room moderator will review your teacher request. Use Check again or keep this page open for an update.':esc(notice?.kind==='account_suspended'?notice.message:'Contact your study room moderator to review your access.')}</p><div class="actions"><button class="button" id="refresh-account">Check again</button><button class="button secondary" id="gate-signout">Sign out</button></div><p role="status">${esc(error)}</p></section>`;
    $('refresh-account').onclick=()=>refresh();$('gate-signout').onclick=signOut;return;
@@ -43,7 +44,7 @@
     ['student','01','Learn at your pace','Study chapters, try questions and keep your own progress.'],
     ['teacher','02','Guide your learners','Create classes, share learning materials and follow class progress.'],
     ['moderator','03','Look after the room','Review teacher requests, manage access and moderate shared materials.']
-   ].map(([role,num,title,copy])=>`<button class="role-card" data-role="${role}"><span class="role-number">${num}</span><h2>${labels[role]}</h2><strong>${title}</strong><p>${copy}</p><span class="role-action">Log in as ${role==='moderator'?'moderator':role} →</span></button>`).join('')}</div>${!configured?'<div class="account-setup" role="status"><strong>Online accounts are being set up.</strong><p>You can keep learning with the offline student edition.</p><a class="button secondary" href="EGCSE-Offline.html">Open offline student practice →</a></div>':''}<p class="auth-foot">Mathematics · Physical Science · EGCSE</p>`;
+   ].map(([role,num,title,copy])=>`<button class="role-card" data-role="${role}"><span class="role-number">${num}</span><h2>${labels[role]}</h2><strong>${title}</strong><p>${copy}</p><span class="role-action">Log in as ${role==='moderator'?'moderator':role} →</span></button>`).join('')}</div>${!configured?'<div class="account-setup" role="status"><strong>Online accounts are being set up.</strong><p>You can keep learning with the offline student edition.</p><a class="button secondary" href="EGCSE-Offline.html">Open offline student practice →</a></div>':''}<p class="auth-foot">Subjects · Classes · Study groups</p>`;
    gate.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{selected=b.dataset.role;error='';render();$('auth-email')?.focus();});return;
   }
   const signup=mode==='signup',reset=mode==='reset';
@@ -129,6 +130,6 @@
  window.StudyAuth={start,refresh,onChange:fn=>listeners.add(fn),active,render,signOut,esc,
   get client(){return client;},get profile(){return profile;},get offline(){return offline;},get configured(){return configured;},
   canTeach:()=>!offline&&active()&&profile?.role==='teacher',canModerate:()=>!offline&&active()&&profile?.role==='moderator',
-  allowed:section=>active()&&(section!=='teacher'||profile?.role==='teacher')&&(section!=='moderator'||profile?.role==='moderator')&&(section!=='rooms'||!offline&&profile?.role==='student')
+  allowed:section=>active()&&(profile?.role!=='moderator'||section==='moderator')&&(section!=='teacher'||profile?.role==='teacher')&&(section!=='moderator'||profile?.role==='moderator')&&(section!=='rooms'||!offline&&profile?.role==='student')
  };
 })();
