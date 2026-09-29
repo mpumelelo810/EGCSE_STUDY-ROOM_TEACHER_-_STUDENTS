@@ -103,6 +103,20 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    await denied(()=>query("insert into public.moderation_log(actor_id,action,target_id) values($1,'fake',$1)",[ids.mod]));
    await as('student');assert.equal((await query('select * from public.room_materials')).length,1);await rpc('leave_room',[room.id]);assert.equal((await query('select * from public.room_materials')).length,0);
   });
+  await t.test('moderator publishes global subject lessons while teachers edit only classes',async()=>{
+   await as('mod');
+   await query("insert into public.subjects(name,available) values('French pilot',true)");
+   const topic=(await query("insert into public.subject_topics(subject_name,position,title) values('French pilot',1,'Greetings') returning *"))[0];
+   const global=(await query("insert into public.global_lessons(topic_id,title,overview,published) values($1,'Bonjour','A greeting',false) returning *",[topic.id]))[0];
+   await as('teacher');
+   assert.equal((await query('select * from public.global_lessons where id=$1',[global.id])).length,0);
+   await denied(()=>query("update public.global_lessons set overview='Teacher edit' where id=$1",[global.id]));
+   await as('mod');
+   await query('update public.global_lessons set published=true where id=$1',[global.id]);
+   await as('student');
+   assert.equal((await query('select * from public.global_lessons where id=$1',[global.id])).length,1);
+   await denied(()=>query("insert into public.subject_topics(subject_name,position,title) values('French pilot',2,'Forged')"));
+  });
   await t.test('malformed payloads and unsafe links are rejected',async()=>{
    await as('student');await assert.rejects(()=>rpc('save_study_progress',[{version:1,completed:[],sessions:{}}]),/Invalid progress/);
    await as('teacher');await assert.rejects(()=>query("insert into public.room_materials(room_id,title,chapter_id,kind,url) values($1,'Bad','M01','resource','javascript:alert(1)')",[room.id]),/check constraint/);
