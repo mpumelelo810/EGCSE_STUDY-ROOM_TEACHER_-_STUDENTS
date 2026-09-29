@@ -80,7 +80,7 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    assert.equal((await query('select * from public.class_lessons')).length,0);
    await denied(()=>query("insert into public.class_lessons(room_id,title) values($1,'Admin lesson')",[room.id]));
    await denied(()=>rpc('moderate_material',[material.id,true]));
-   await query("insert into public.subjects(name) values('Geography')");
+   await query("insert into public.subjects(name) values('Pilot subject')");
    await as('teacher');assert.equal((await query('select * from public.class_lessons where id=$1',[lesson.id])).length,1);
   });
   await t.test('only approved classmates can form and discuss in a group',async()=>{
