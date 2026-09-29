@@ -68,7 +68,7 @@ test('database enforces student, teacher and moderator boundaries',async t=>{
    await as('mod');assert.equal((await query('select * from public.study_progress')).length,0);await denied(()=>rpc('class_progress',[room.id]));
   });
   await t.test('teachers own class lessons and moderators see no learning content',async()=>{
-   await as('teacher');await query("insert into public.subjects(name) values('History')");
+   await as('teacher');await denied(()=>query("insert into public.subjects(name) values('History')"));
    const lesson=(await query("insert into public.class_lessons(room_id,title,overview,practice_question,practice_answer) values($1,'Decimals','Place value','Round 2.45','2.5') returning *",[room.id]))[0];
    await as('student');assert.equal((await query('select * from public.class_lessons')).length,1);
    await denied(()=>query("insert into public.class_lessons(room_id,title) values($1,'Forgery')",[room.id]));
