@@ -130,6 +130,6 @@
  window.StudyAuth={start,refresh,onChange:fn=>listeners.add(fn),active,render,signOut,esc,
   get client(){return client;},get profile(){return profile;},get offline(){return offline;},get configured(){return configured;},
   canTeach:()=>!offline&&active()&&profile?.role==='teacher',canModerate:()=>!offline&&active()&&profile?.role==='moderator',
-  allowed:section=>active()&&(profile?.role!=='moderator'||section==='moderator')&&(section!=='teacher'||profile?.role==='teacher')&&(section!=='moderator'||profile?.role==='moderator')&&(section!=='rooms'||!offline&&profile?.role==='student')
+  allowed:section=>active()&&(profile?.role!=='moderator'||['moderator','subjects','subject'].includes(section))&&(section!=='teacher'||profile?.role==='teacher')&&(section!=='moderator'||profile?.role==='moderator')&&(section!=='rooms'||!offline&&profile?.role==='student')&&(!['subjects','subject'].includes(section)||!offline)
  };
 })();
