@@ -55,5 +55,14 @@
    if(mod)$('new-global-topic').onsubmit=async e=>{e.preventDefault();try{await result(A.client.from('subject_topics').insert({subject_name:name,position:(topics.at(-1)?.position||0)+1,title:new FormData(e.target).get('title').trim()}));await subject(name);$('catalog-status').textContent='Topic added for everyone.';}catch(err){$('catalog-status').textContent=err.message;}};
   }catch(e){if(token===generation)$('main').innerHTML='<div class="page-head"><h1>Could not open subject</h1><p role="alert">'+esc(e.message)+'</p><a href="#subjects">All subjects</a></div>';}
  }
- window.StudyCatalog={list,subject,leave:()=>generation++};
+ let navGeneration=0;
+ async function refreshNav(){
+  const host=$('extra-subject-nav'),token=++navGeneration;if(!host)return;
+  host.innerHTML='';if(!A.active()||A.offline||A.profile?.role==='moderator')return;
+  try{const subjects=await result(A.client.from('subjects').select('name').eq('available',true).order('name'));
+   if(token!==navGeneration||!A.active())return;
+   host.innerHTML=subjects.filter(s=>!['Mathematics','Physical Science'].includes(s.name)).map(s=>'<a href="#subject/'+encodeURIComponent(s.name)+'"><span class="nav-icon">▤</span>'+esc(s.name)+'</a>').join('');
+  }catch{if(token===navGeneration)host.innerHTML='';}
+ }
+ window.StudyCatalog={list,subject,refreshNav,leave:()=>generation++};
 })();
