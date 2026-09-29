@@ -121,4 +121,9 @@ revoke all on function public.create_study_group(uuid,text),public.join_study_gr
 grant execute on function public.create_study_group(uuid,text),public.join_study_group(text),public.group_discussion(uuid) to authenticated;
 grant delete on public.room_materials to authenticated;
 create policy materials_delete on public.room_materials for delete to authenticated using (owner_id=(select auth.uid()) and private.owns_room(room_id));
+create index class_lessons_owner on public.class_lessons(owner_id);
+create index study_group_posts_author on public.study_group_posts(author_id);
+create index study_groups_creator on public.study_groups(creator_id);
+create index study_rooms_subject on public.study_rooms(subject);
+create index subjects_creator on public.subjects(creator_id) where creator_id is not null;
 commit;
